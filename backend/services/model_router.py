@@ -1,5 +1,5 @@
 CHAT_MODELS = {
-    "auto": "minimaxai/minimax-m3",
+    "auto": "deepseek-ai/deepseek-v4-flash",
     "minimax": "minimaxai/minimax-m3",
     "deepseek": "deepseek-ai/deepseek-v4-flash",
     "glm": "z-ai/glm-5.1",

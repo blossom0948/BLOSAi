@@ -34,6 +34,12 @@ button {
   overflow-x: hidden;
 }
 
+@supports (min-height: 100dvh) {
+  .appShell {
+    min-height: 100dvh;
+  }
+}
+
 .header {
   position: fixed;
   top: 0;
@@ -898,6 +904,193 @@ button {
 
   .sidebar {
     width: 285px;
+  }
+}
+
+@media (max-width: 520px) {
+  body {
+    overflow-x: hidden;
+  }
+
+  .header {
+    height: 58px;
+    padding: 0 10px;
+    gap: 8px;
+  }
+
+  .iconButton {
+    width: 36px;
+    height: 36px;
+  }
+
+  .logoArea {
+    gap: 7px;
+    font-size: 17px;
+    white-space: nowrap;
+  }
+
+  .logoSpark svg {
+    width: 19px;
+    height: 19px;
+  }
+
+  .headerModelPicker {
+    min-width: 104px;
+    height: 36px;
+    padding: 0 10px;
+    font-size: 11px;
+    gap: 5px;
+  }
+
+  .modelMenu {
+    top: 44px;
+    right: 0;
+    width: calc(100vw - 20px);
+    max-width: 310px;
+    border-radius: 18px;
+  }
+
+  .modelMenu button {
+    min-height: 54px;
+    border-radius: 14px;
+  }
+
+  .mainArea {
+    padding: 88px 12px 126px;
+    align-items: flex-start;
+  }
+
+  .welcome {
+    transform: none;
+    padding-top: 28px;
+  }
+
+  .welcome h1 {
+    font-size: 28px;
+    margin-bottom: 24px;
+  }
+
+  .bigSpark {
+    margin-bottom: 16px;
+  }
+
+  .bigSpark svg {
+    width: 44px;
+    height: 44px;
+  }
+
+  .quickGrid {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+
+  .quickGrid button {
+    min-height: 68px;
+    border-radius: 18px;
+    font-size: 13px;
+  }
+
+  .suggestions {
+    gap: 8px;
+  }
+
+  .suggestions span {
+    max-width: 100%;
+    padding: 9px 12px;
+    font-size: 12px;
+  }
+
+  .chatList {
+    width: 100%;
+    gap: 14px;
+  }
+
+  .chatMessage {
+    max-width: 88%;
+    padding: 13px 15px;
+    border-radius: 18px;
+    line-height: 1.58;
+  }
+
+  .chatMessage.user {
+    max-width: 82%;
+  }
+
+  .messageText {
+    font-size: 14.5px;
+  }
+
+  .normalText h1 {
+    font-size: 20px;
+  }
+
+  .normalText h2 {
+    font-size: 18px;
+  }
+
+  .promptOuter {
+    width: calc(100% - 18px);
+    bottom: max(10px, env(safe-area-inset-bottom));
+  }
+
+  .promptBox {
+    min-height: 62px;
+    padding: 9px 10px;
+    gap: 7px;
+    border-radius: 28px;
+  }
+
+  .promptIcon,
+  .micButton,
+  .sendButton {
+    flex-basis: 38px;
+    width: 38px;
+    height: 38px;
+  }
+
+  .promptBox textarea {
+    height: 36px;
+    line-height: 36px;
+    font-size: 15px;
+  }
+
+  .attachMenu {
+    left: 50%;
+    bottom: 76px;
+    transform: translateX(-50%);
+    width: calc(100vw - 18px);
+    padding: 12px;
+    border-radius: 24px;
+    gap: 8px;
+  }
+
+  .attachMenu button {
+    min-height: 90px;
+    border-radius: 18px;
+  }
+
+  .attachSymbol {
+    width: 46px;
+    height: 46px;
+    border-radius: 15px;
+  }
+
+  .sidebar {
+    width: min(300px, calc(100vw - 42px));
+    padding: 16px;
+  }
+
+  @keyframes welcomeRise {
+    from {
+      opacity: 0;
+      transform: translateY(48px) scale(0.98);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
   }
 }
 

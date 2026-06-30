@@ -49,18 +49,6 @@ def chat_stream(req: ChatRequest):
 글자가 잘 안 보이면 추측하지 말고 다시 찍어달라고 해.
 """
 
-        user_content = [{"type": "text", "text": user_text}]
-
-        if has_image:
-            user_content.append(
-                {
-                    "type": "image_url",
-                    "image_url": {
-                        "url": f"data:{req.image_type or 'image/jpeg'};base64,{req.image_base64}"
-                    },
-                }
-            )
-
         history_messages = []
         for item in req.history[-16:]:
             role = item.get("role")
@@ -76,6 +64,33 @@ def chat_stream(req: ChatRequest):
                 }
             )
 
+        if history_messages:
+            history_text = "\n".join(
+                f"{'사용자' if item['role'] == 'user' else 'BLOS AI'}: {item['content']}"
+                for item in history_messages[-10:]
+            )
+            user_text = f"""
+아래는 같은 대화의 최근 기록이야. 현재 질문에 답할 때 이 기록을 우선 활용해.
+
+[최근 대화 기록]
+{history_text}
+
+[현재 질문]
+{user_text}
+"""
+
+        user_content = [{"type": "text", "text": user_text}]
+
+        if has_image:
+            user_content.append(
+                {
+                    "type": "image_url",
+                    "image_url": {
+                        "url": f"data:{req.image_type or 'image/jpeg'};base64,{req.image_base64}"
+                    },
+                }
+            )
+
         stream = client.chat.completions.create(
             model=selected_model,
             messages=[
@@ -87,6 +102,8 @@ def chat_stream(req: ChatRequest):
 너는 같은 대화 안에서 이전 메시지를 반드시 기억하고 활용해야 해.
 사용자가 이름, 선호, 방금 말한 내용, 이전 질문을 물으면 대화 기록에서 찾아 답해.
 이미 알고 있는 내용을 다시 묻지 말고, 모르면 모른다고 짧게 말해.
+차량, 제품, 인물, 지명 같은 사실 질문은 모르면 지어내지 말고 불확실하다고 밝혀.
+맥락 질문에서 "그럼", "그건", "방금 말한" 같은 표현이 나오면 최근 대화의 주제를 이어받아 답해.
 
 역할:
 - 일반 질문 답변
