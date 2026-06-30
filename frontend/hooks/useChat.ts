@@ -101,6 +101,27 @@ function compressImage(
   });
 }
 
+function shouldAutoGenerateImage(message: string) {
+  const text = message.toLowerCase();
+  const imageWords = ["이미지", "그림", "사진", "로고", "썸네일", "포스터", "아이콘"];
+  const createWords = ["만들", "생성", "그려", "제작", "create", "generate", "draw"];
+
+  return (
+    imageWords.some((word) => text.includes(word)) &&
+    createWords.some((word) => text.includes(word))
+  );
+}
+
+function toApiHistory(messages: Message[]) {
+  return messages
+    .filter((message) => message.text.trim())
+    .slice(-16)
+    .map((message) => ({
+      role: message.role === "ai" ? ("assistant" as const) : ("user" as const),
+      text: message.text,
+    }));
+}
+
 export function useChat() {
   const initialState = useRef<InitialChatState | null>(null);
   if (!initialState.current) {
@@ -232,7 +253,12 @@ export function useChat() {
     setLoading(true);
 
     try {
-      if (settings.model === "image" && !imageFile) {
+      const shouldGenerateImage =
+        !imageFile &&
+        (settings.model === "image" ||
+          (settings.model === "auto" && shouldAutoGenerateImage(userMessage)));
+
+      if (shouldGenerateImage) {
         const startMessages: Message[] = [
           ...messages,
           { role: "user", text: userMessage },
@@ -284,6 +310,7 @@ export function useChat() {
 
       await streamChat({
         message: userMessage,
+        history: toApiHistory(messages),
         imageBase64,
         imageType,
         model: settings.model,

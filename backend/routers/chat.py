@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 from fastapi.responses import StreamingResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from services.model_router import choose_chat_model
 from services.nvidia_client import client
@@ -13,13 +13,14 @@ class ChatRequest(BaseModel):
     image_base64: str | None = None
     image_type: str | None = None
     model: str | None = "auto"
+    history: list[dict[str, str]] = Field(default_factory=list)
 
 
 @router.post("/chat/stream")
 def chat_stream(req: ChatRequest):
     def generate():
         has_image = req.image_base64 is not None
-        selected_model = choose_chat_model(req.model, has_image)
+        selected_model = choose_chat_model(req.model, has_image, req.message)
 
         user_text = req.message or "이 이미지를 분석해줘"
 
@@ -60,6 +61,21 @@ def chat_stream(req: ChatRequest):
                 }
             )
 
+        history_messages = []
+        for item in req.history[-16:]:
+            role = item.get("role")
+            text = (item.get("text") or "").strip()
+
+            if role not in {"user", "assistant"} or not text:
+                continue
+
+            history_messages.append(
+                {
+                    "role": role,
+                    "content": text[:3000],
+                }
+            )
+
         stream = client.chat.completions.create(
             model=selected_model,
             messages=[
@@ -68,6 +84,9 @@ def chat_stream(req: ChatRequest):
                     "content": """
 너는 BLOS AI야.
 한국어로 친절하고 정확하게 답해.
+너는 같은 대화 안에서 이전 메시지를 반드시 기억하고 활용해야 해.
+사용자가 이름, 선호, 방금 말한 내용, 이전 질문을 물으면 대화 기록에서 찾아 답해.
+이미 알고 있는 내용을 다시 묻지 말고, 모르면 모른다고 짧게 말해.
 
 역할:
 - 일반 질문 답변
@@ -82,8 +101,10 @@ def chat_stream(req: ChatRequest):
 - 코딩 질문은 원인, 해결 방법, 수정 예시를 함께 준다.
 - 이미지가 있으면 먼저 유형을 판단하고 유형에 맞게 답한다.
 - 글자가 잘 안 보이면 억지로 추측하지 않는다.
+- 일반 질문에는 너무 딱딱하게 굴지 말고, 필요한 만큼만 명확하게 답한다.
 """,
                 },
+                *history_messages,
                 {
                     "role": "user",
                     "content": user_content,
