@@ -173,6 +173,7 @@ export function useChat() {
     setMessages([]);
     setSelectedImage(null);
     setCurrentId("");
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   function openConversation(id: string) {

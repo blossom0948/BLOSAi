@@ -1,4 +1,5 @@
 import os
+from urllib.parse import quote
 
 import requests
 from fastapi import HTTPException
@@ -7,10 +8,24 @@ from services.model_router import IMAGE_MODEL
 
 
 def generate_image_base64(prompt: str) -> str:
+    try:
+        return _generate_with_nvidia(prompt)
+    except HTTPException as exc:
+        if exc.status_code not in {404, 501, 502, 503}:
+            raise
+
+        fallback = os.getenv("IMAGE_FALLBACK_PROVIDER", "pollinations").lower()
+        if fallback == "none":
+            raise
+
+        return _generate_with_pollinations(prompt)
+
+
+def _generate_with_nvidia(prompt: str) -> str:
     api_key = os.getenv("NVIDIA_API_KEY")
 
     if not api_key:
-        raise HTTPException(status_code=500, detail="NVIDIA_API_KEY가 없습니다.")
+        raise HTTPException(status_code=503, detail="NVIDIA_API_KEY가 없습니다.")
 
     response = requests.post(
         "https://integrate.api.nvidia.com/v1/images/generations",
@@ -54,3 +69,29 @@ def generate_image_base64(prompt: str) -> str:
             status_code=502,
             detail=f"Unexpected NVIDIA image response: {data}",
         ) from exc
+
+
+def _generate_with_pollinations(prompt: str) -> str:
+    encoded_prompt = quote(prompt.strip() or "BLOS AI generated image")
+    urls = [
+        f"https://image.pollinations.ai/prompt/{encoded_prompt}?width=768&height=768&model=flux&nologo=true&private=true&seed=11",
+        f"https://image.pollinations.ai/prompt/{encoded_prompt}?width=768&height=768&model=turbo&nologo=true&private=true&seed=23",
+        f"https://image.pollinations.ai/prompt/{encoded_prompt}?width=512&height=512&nologo=true&private=true&seed=37",
+    ]
+
+    last_error = ""
+
+    for image_url in urls:
+        response = requests.get(image_url, timeout=120)
+
+        if response.ok and response.content:
+            import base64
+
+            return base64.b64encode(response.content).decode("utf-8")
+
+        last_error = response.text
+
+    raise HTTPException(
+        status_code=503,
+        detail=f"Fallback image generation failed: {last_error}",
+    )

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Check, ChevronDown, Menu, Sparkles } from "lucide-react";
 import { UserSettings } from "../types/chat";
 
@@ -38,6 +38,18 @@ export default function Header({
   onSettingsChange,
 }: Props) {
   const [modelMenuOpen, setModelMenuOpen] = useState(false);
+  const modelWrapRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    function closeOnOutsideClick(event: MouseEvent) {
+      if (!modelWrapRef.current?.contains(event.target as Node)) {
+        setModelMenuOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", closeOnOutsideClick);
+    return () => document.removeEventListener("mousedown", closeOnOutsideClick);
+  }, []);
 
   return (
     <header className="header">
@@ -52,7 +64,7 @@ export default function Header({
         <span className="logoText">BLOS AI</span>
       </button>
 
-      <div className="headerModelWrap">
+      <div className="headerModelWrap" ref={modelWrapRef}>
         <button
           type="button"
           className={`headerModelPicker ${modelMenuOpen ? "open" : ""}`}

@@ -37,6 +37,7 @@ export default function PromptBox({
   const photoInputRef = useRef<HTMLInputElement | null>(null);
   const cameraInputRef = useRef<HTMLInputElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const promptOuterRef = useRef<HTMLDivElement | null>(null);
 
   const objectUrl = useMemo(() => {
     if (!selectedImage) return "";
@@ -48,6 +49,17 @@ export default function PromptBox({
       if (objectUrl) URL.revokeObjectURL(objectUrl);
     };
   }, [objectUrl]);
+
+  useEffect(() => {
+    function closeOnOutsideClick(event: MouseEvent) {
+      if (!promptOuterRef.current?.contains(event.target as Node)) {
+        setMenuOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", closeOnOutsideClick);
+    return () => document.removeEventListener("mousedown", closeOnOutsideClick);
+  }, []);
 
   function chooseFile(file?: File) {
     if (!file) return;
@@ -62,7 +74,7 @@ export default function PromptBox({
   }
 
   return (
-    <div className="promptOuter">
+    <div className="promptOuter" ref={promptOuterRef}>
       {menuOpen && (
         <div className="attachMenu">
           <button type="button" onClick={() => photoInputRef.current?.click()}>
