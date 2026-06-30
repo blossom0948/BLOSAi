@@ -1,0 +1,19 @@
+{
+  "name": "BLOS AI",
+  "short_name": "BLOS AI",
+  "description": "개인 AI 비서 플랫폼",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
