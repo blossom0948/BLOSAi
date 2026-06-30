@@ -1,0 +1,750 @@
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: #000;
+  color: #f1f1f1;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+button,
+input,
+textarea,
+select {
+  font-family: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+.appShell {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 50% 100%, rgba(31, 86, 190, 0.72), transparent 36%),
+    radial-gradient(circle at 82% 92%, rgba(28, 62, 142, 0.74), transparent 34%),
+    linear-gradient(180deg, #000 0%, #02050b 52%, #071226 100%);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.header {
+  height: 62px;
+  padding: 0 18px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.iconButton,
+.promptIcon,
+.micButton,
+.sendButton {
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 999px;
+}
+
+.iconButton {
+  width: 40px;
+  height: 40px;
+  background: transparent;
+  color: #fff;
+}
+
+.logoArea {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.logoSpark,
+.bigSpark {
+  display: grid;
+  place-items: center;
+  color: #8fb1ff;
+}
+
+.modelBadge {
+  margin-left: auto;
+  padding: 9px 14px;
+  border-radius: 999px;
+  font-size: 14px;
+  color: #e8e8e8;
+  background: rgba(255, 255, 255, 0.09);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.mainArea {
+  flex: 1;
+  padding: 40px 20px 130px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.welcome {
+  width: min(860px, 100%);
+  text-align: center;
+  transform: translateY(-25px);
+}
+
+.bigSpark {
+  margin-bottom: 22px;
+}
+
+.welcome h1 {
+  margin: 0 0 34px;
+  font-size: 44px;
+  line-height: 1.32;
+  font-weight: 600;
+}
+
+.quickGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin: 0 auto 26px;
+}
+
+.quickGrid button {
+  min-height: 74px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  font-size: 15px;
+  backdrop-filter: blur(14px);
+  display: grid;
+  place-items: center;
+  gap: 7px;
+}
+
+.quickGrid button:hover,
+.suggestions span:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.suggestions {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.suggestions p {
+  width: 100%;
+  color: #aaa;
+  margin: 0 0 4px;
+}
+
+.suggestions span {
+  padding: 10px 14px;
+  border-radius: 999px;
+  color: #ddd;
+  background: rgba(255, 255, 255, 0.08);
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.chatList {
+  width: min(840px, 100%);
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  align-self: stretch;
+  margin: 0 auto;
+}
+
+.chatMessage {
+  max-width: 78%;
+  padding: 18px 20px;
+  border-radius: 24px;
+  white-space: pre-wrap;
+  line-height: 1.65;
+  animation: fadeUp 0.22s ease-out;
+}
+
+.chatMessage.user {
+  align-self: flex-end;
+  background: linear-gradient(135deg, #3268ff, #2851dc);
+  border-bottom-right-radius: 8px;
+}
+
+.chatMessage.ai {
+  align-self: flex-start;
+  background: rgba(255, 255, 255, 0.09);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-bottom-left-radius: 8px;
+  backdrop-filter: blur(14px);
+}
+
+.messageTop,
+.messageLabel,
+.messageCopyButton,
+.codeHeader {
+  display: flex;
+  align-items: center;
+}
+
+.messageTop {
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.messageLabel {
+  gap: 6px;
+  font-size: 13px;
+  color: #b9c3d8;
+  margin-bottom: 8px;
+  font-weight: 700;
+}
+
+.messageText {
+  font-size: 15.5px;
+}
+
+.messageCopyButton,
+.codeHeader button {
+  border: 0;
+  border-radius: 999px;
+  padding: 5px 10px;
+  background: rgba(255, 255, 255, 0.09);
+  color: #ddd;
+  font-size: 12px;
+  gap: 5px;
+}
+
+.messageImage {
+  width: 220px;
+  max-width: 100%;
+  border-radius: 18px;
+  margin-bottom: 12px;
+  display: block;
+}
+
+.normalText p {
+  margin: 0 0 10px;
+}
+
+.normalText h1,
+.normalText h2,
+.normalText h3 {
+  margin: 14px 0 10px;
+  line-height: 1.35;
+}
+
+.normalText h1 {
+  font-size: 24px;
+}
+
+.normalText h2 {
+  font-size: 21px;
+}
+
+.normalText h3 {
+  font-size: 18px;
+}
+
+.normalText li {
+  margin: 6px 0 6px 18px;
+}
+
+.normalText hr {
+  border: 0;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.14);
+  margin: 18px 0;
+}
+
+.codeBlock {
+  margin: 14px 0;
+  overflow: hidden;
+  border-radius: 16px;
+  background: #0d1117;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.codeHeader {
+  min-height: 40px;
+  padding: 0 12px;
+  background: #161b22;
+  justify-content: space-between;
+  color: #aaa;
+  font-size: 13px;
+}
+
+.codeBlock pre {
+  margin: 0;
+  padding: 16px;
+  overflow-x: auto;
+}
+
+.codeBlock code {
+  font-family: Consolas, Monaco, monospace;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #e6edf3;
+}
+
+.promptOuter {
+  position: fixed;
+  left: 50%;
+  bottom: 18px;
+  transform: translateX(-50%);
+  width: min(820px, calc(100% - 30px));
+  z-index: 15;
+}
+
+.promptBox {
+  width: 100%;
+  min-height: 74px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 999px;
+  background: rgba(31, 31, 31, 0.96);
+  box-shadow: 0 22px 80px rgba(0, 0, 0, 0.55);
+}
+
+.promptBox textarea {
+  flex: 1;
+  height: 38px;
+  border: 0;
+  outline: 0;
+  color: #fff;
+  background: transparent;
+  font-size: 18px;
+  resize: none;
+  line-height: 38px;
+  padding: 0;
+  overflow: hidden;
+  scrollbar-width: none;
+}
+
+.promptBox textarea::-webkit-scrollbar {
+  display: none;
+}
+
+.promptBox textarea::placeholder {
+  color: #a6a6a6;
+}
+
+.promptIcon,
+.micButton,
+.sendButton {
+  flex: 0 0 42px;
+  width: 42px;
+  height: 42px;
+}
+
+.promptIcon,
+.micButton {
+  background: transparent;
+  color: #ddd;
+}
+
+.sendButton {
+  background: #fff;
+  color: #000;
+}
+
+.sendButton.stop {
+  background: #ff4d4d;
+  color: #fff;
+}
+
+.attachMenu {
+  position: absolute;
+  left: 0;
+  bottom: 92px;
+  width: 380px;
+  max-width: calc(100vw - 30px);
+  padding: 18px;
+  border-radius: 28px;
+  background: rgba(28, 28, 28, 0.98);
+  box-shadow: 0 24px 90px rgba(0, 0, 0, 0.55);
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.attachMenu button {
+  min-height: 112px;
+  border: 0;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.055);
+  color: #e8e8e8;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.attachMenu button:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.attachMenu strong {
+  font-size: 16px;
+}
+
+.attachMenu small {
+  color: #999;
+  font-size: 12px;
+}
+
+.attachSymbol {
+  width: 54px;
+  height: 54px;
+  border-radius: 18px;
+  display: grid;
+  place-items: center;
+  background: rgba(255, 255, 255, 0.06);
+  color: #f1f1f1;
+}
+
+.imagePreview {
+  margin: 0 0 10px;
+  padding: 10px 14px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.12);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  color: #eee;
+  font-size: 14px;
+  backdrop-filter: blur(14px);
+}
+
+.imagePreview img {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  object-fit: cover;
+}
+
+.imagePreview span {
+  flex: 1;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.imagePreview button {
+  border: 0;
+  background: transparent;
+  color: #fff;
+  display: grid;
+  place-items: center;
+}
+
+.exportButton {
+  position: fixed;
+  top: 72px;
+  right: 18px;
+  z-index: 10;
+  border: 0;
+  border-radius: 999px;
+  padding: 9px 14px;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.09);
+  backdrop-filter: blur(14px);
+}
+
+.dropOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgba(20, 80, 200, 0.22);
+  border: 2px dashed rgba(255, 255, 255, 0.45);
+  backdrop-filter: blur(8px);
+  display: grid;
+  place-items: center;
+  color: #fff;
+  font-size: 26px;
+  font-weight: 800;
+}
+
+.sidebarOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.48);
+  opacity: 0;
+  pointer-events: none;
+  transition: 0.25s;
+  z-index: 20;
+}
+
+.sidebarOverlay.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: -320px;
+  width: 300px;
+  height: 100vh;
+  background: rgba(16, 16, 20, 0.96);
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(20px);
+  z-index: 30;
+  padding: 18px;
+  transition: 0.28s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar.open {
+  left: 0;
+}
+
+.sidebarTop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.sidebarTop h2 {
+  margin: 0;
+  font-size: 22px;
+}
+
+.sidebarTop p {
+  margin: 4px 0 0;
+  color: #888;
+  font-size: 13px;
+}
+
+.sidebarTop button {
+  background: transparent;
+  border: 0;
+  color: #fff;
+}
+
+.newChatButton {
+  margin: 24px 0;
+  min-height: 48px;
+  border: 0;
+  border-radius: 16px;
+  background: #fff;
+  color: #000;
+  font-weight: 800;
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+}
+
+.sidebarSection {
+  margin-bottom: 24px;
+}
+
+.sidebarSection p {
+  color: #888;
+  font-size: 13px;
+  margin: 0 0 8px;
+}
+
+.sidebarSection button,
+.sidebarBottom button {
+  width: 100%;
+  text-align: left;
+  min-height: 42px;
+  border: 0;
+  border-radius: 13px;
+  background: transparent;
+  color: #ddd;
+  padding: 0 12px;
+  font-size: 14px;
+}
+
+.sidebarSection button:hover,
+.sidebarBottom button:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.sidebarBottom {
+  margin-top: auto;
+}
+
+.loginCard {
+  margin-top: 18px;
+  padding: 14px;
+  min-height: 70px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.06);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.loginCard button {
+  min-height: 34px;
+  border: 0;
+  border-radius: 999px;
+  padding: 0 12px;
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.avatarCircle {
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, #3b6cff, #101e4a);
+  font-weight: 800;
+}
+
+.conversationRow {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.conversationRow > button:first-child {
+  flex: 1;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.activeConversation {
+  background: rgba(255, 255, 255, 0.13) !important;
+}
+
+.deleteChatButton {
+  width: 38px !important;
+  padding: 0 !important;
+  display: grid;
+  place-items: center;
+  color: #ff9a9a !important;
+}
+
+.settingItem,
+.settingToggle {
+  width: 100%;
+  min-height: 44px;
+  border-radius: 13px;
+  padding: 8px 10px;
+  margin-bottom: 8px;
+  background: rgba(255, 255, 255, 0.045);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.settingItem span,
+.settingToggle span {
+  color: #ddd;
+  font-size: 14px;
+}
+
+.settingItem select {
+  max-width: 150px;
+  background: #1f1f1f;
+  color: #fff;
+  border: 0;
+  border-radius: 10px;
+  padding: 7px;
+}
+
+.settingToggle input {
+  width: 18px;
+  height: 18px;
+}
+
+.compact .chatMessage {
+  padding: 13px 16px;
+  line-height: 1.45;
+}
+
+.compact .promptBox {
+  min-height: 62px;
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 700px) {
+  .welcome h1 {
+    font-size: 31px;
+  }
+
+  .quickGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .modelBadge {
+    display: none;
+  }
+
+  .chatMessage {
+    max-width: 92%;
+  }
+
+  .promptOuter {
+    bottom: 16px;
+  }
+
+  .promptBox {
+    min-height: 66px;
+    gap: 8px;
+    padding: 10px 12px;
+  }
+
+  .promptBox textarea {
+    font-size: 16px;
+  }
+
+  .attachMenu {
+    width: calc(100vw - 30px);
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .attachMenu button {
+    min-height: 104px;
+  }
+
+  .attachMenu strong {
+    font-size: 14px;
+  }
+
+  .attachMenu small {
+    display: none;
+  }
+
+  .sidebar {
+    width: 285px;
+  }
+}
