@@ -9,9 +9,15 @@ type Props = {
   messages: Message[];
   loading: boolean;
   onPromptSelect: (text: string) => void;
+  onExport: () => void;
 };
 
-export default function ChatWindow({ messages, loading, onPromptSelect }: Props) {
+export default function ChatWindow({
+  messages,
+  loading,
+  onPromptSelect,
+  onExport,
+}: Props) {
   const bottomRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -24,6 +30,10 @@ export default function ChatWindow({ messages, loading, onPromptSelect }: Props)
         <Welcome onPromptSelect={onPromptSelect} />
       ) : (
         <div className="chatList">
+          <div className="chatActions">
+            <button onClick={onExport}>대화 저장</button>
+          </div>
+
           {messages.map((msg, index) => (
             <ChatMessage
               key={index}

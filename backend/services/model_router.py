@@ -5,7 +5,7 @@ CHAT_MODELS = {
     "glm": "z-ai/glm-5.1",
 }
 
-IMAGE_MODEL = "qwen-image"
+IMAGE_MODEL = "qwen/qwen-image"
 
 
 def choose_chat_model(model: str | None, has_image: bool):

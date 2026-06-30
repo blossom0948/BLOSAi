@@ -2,7 +2,7 @@
 
 /* eslint-disable @next/next/no-img-element */
 import { useState } from "react";
-import { Bot, Check, Copy, User } from "lucide-react";
+import { Check, Copy, Download } from "lucide-react";
 
 type Props = {
   role: "user" | "ai";
@@ -76,21 +76,22 @@ export default function ChatMessage({ role, text, imageUrl }: Props) {
 
   return (
     <div className={`chatMessage ${role}`}>
-      <div className="messageTop">
-        <div className="messageLabel">
-          {role === "user" ? <User size={15} /> : <Bot size={15} />}
-          <span>{role === "user" ? "나" : "BLOS"}</span>
-        </div>
-
-        {role === "ai" && text && (
+      {role === "ai" && text && (
+        <div className="messageTop">
           <button className="messageCopyButton" onClick={copyMessage}>
             {copied ? <Check size={13} /> : <Copy size={13} />}
             <span>{copied ? "복사됨" : "복사"}</span>
           </button>
-        )}
-      </div>
+        </div>
+      )}
 
       {imageUrl && <img className="messageImage" src={imageUrl} alt="첨부 이미지" />}
+      {role === "ai" && imageUrl && (
+        <a className="imageDownloadButton" href={imageUrl} download="blos-ai-image.png">
+          <Download size={14} />
+          이미지 저장
+        </a>
+      )}
 
       <div className="messageText">{renderText(text)}</div>
     </div>

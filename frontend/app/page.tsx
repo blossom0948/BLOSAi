@@ -88,18 +88,18 @@ export default function Home() {
         onSettingsChange={updateSettings}
       />
 
-      <Header onMenuClick={() => setSidebarOpen(true)} />
-
-      {messages.length > 0 && (
-        <button className="exportButton" onClick={exportCurrentChat}>
-          대화 저장
-        </button>
-      )}
+      <Header
+        onMenuClick={() => setSidebarOpen(true)}
+        onNewChat={newChat}
+        settings={settings}
+        onSettingsChange={updateSettings}
+      />
 
       <ChatWindow
         messages={messages}
         loading={loading}
         onPromptSelect={setInput}
+        onExport={exportCurrentChat}
       />
 
       <PromptBox

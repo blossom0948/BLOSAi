@@ -81,29 +81,6 @@ export default function Sidebar({
         </button>
 
         <div className="sidebarSection">
-          <p>모델</p>
-
-          <label className="settingItem">
-            <span>AI 모델</span>
-            <select
-              value={settings.model}
-              onChange={(e) =>
-                onSettingsChange({
-                  ...settings,
-                  model: e.target.value as UserSettings["model"],
-                })
-              }
-            >
-              <option value="auto">Auto 추천</option>
-              <option value="minimax">MiniMax M3</option>
-              <option value="deepseek">DeepSeek V4 Flash</option>
-              <option value="glm">GLM 5.1</option>
-              <option value="image">Qwen Image 생성</option>
-            </select>
-          </label>
-        </div>
-
-        <div className="sidebarSection">
           <p>대화 기록</p>
 
           {conversations.length === 0 ? (

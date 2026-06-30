@@ -60,7 +60,17 @@ export async function generateImage(prompt: string) {
   });
 
   if (!res.ok) {
-    throw new Error("Image generation failed");
+    const detailText = await res.text();
+    let detail = detailText;
+
+    try {
+      const parsed = JSON.parse(detailText);
+      detail = parsed.detail || detailText;
+    } catch {
+      detail = detailText;
+    }
+
+    throw new Error(detail || "Image generation failed");
   }
 
   const data = await res.json();

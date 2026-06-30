@@ -299,8 +299,13 @@ export function useChat() {
           });
         },
       });
-    } catch {
+    } catch (error) {
       if (controller.signal.aborted) return;
+
+      const message =
+        error instanceof Error
+          ? `오류가 발생했어요.\n\n${error.message}`
+          : "오류가 발생했어요. 백엔드 서버가 켜져 있는지 확인해주세요.";
 
       setMessages((prev) => {
         const updated = [...prev];
@@ -308,7 +313,7 @@ export function useChat() {
         if (updated.length > 0) {
           updated[updated.length - 1] = {
             role: "ai",
-            text: "오류가 발생했어요. 백엔드 서버가 켜져 있는지 확인해주세요.",
+            text: message,
           };
         }
 

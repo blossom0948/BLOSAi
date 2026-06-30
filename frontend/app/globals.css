@@ -4,6 +4,7 @@
 
 html,
 body {
+  min-height: 100%;
   margin: 0;
   padding: 0;
   background: #000;
@@ -30,15 +31,21 @@ button {
     linear-gradient(180deg, #000 0%, #02050b 52%, #071226 100%);
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  overflow-x: hidden;
 }
 
 .header {
-  height: 62px;
+  position: sticky;
+  top: 0;
+  z-index: 18;
+  height: 64px;
   padding: 0 18px;
   display: flex;
   align-items: center;
   gap: 16px;
+  background: rgba(0, 0, 0, 0.74);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(18px);
 }
 
 .iconButton,
@@ -59,11 +66,19 @@ button {
 }
 
 .logoArea {
+  border: 0;
+  background: transparent;
+  color: #fff;
+  padding: 0;
   display: flex;
   align-items: center;
   gap: 9px;
   font-size: 20px;
   font-weight: 800;
+}
+
+.logoArea:hover .logoSpark {
+  color: #bfd0ff;
 }
 
 .logoSpark,
@@ -73,19 +88,84 @@ button {
   color: #8fb1ff;
 }
 
-.modelBadge {
+.headerModelWrap {
+  position: relative;
   margin-left: auto;
-  padding: 9px 14px;
+}
+
+.headerModelPicker {
+  min-width: 132px;
+  height: 40px;
+  padding: 0 14px;
   border-radius: 999px;
-  font-size: 14px;
+  font-size: 13px;
+  font-weight: 700;
   color: #e8e8e8;
-  background: rgba(255, 255, 255, 0.09);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.headerModelPicker.open,
+.headerModelPicker:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.modelMenu {
+  position: absolute;
+  top: 48px;
+  right: 0;
+  width: 248px;
+  padding: 8px;
+  border-radius: 20px;
+  background: rgba(21, 21, 24, 0.98);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(18px);
+}
+
+.modelMenu button {
+  width: 100%;
+  min-height: 58px;
+  border: 0;
+  border-radius: 15px;
+  padding: 10px 12px;
+  background: transparent;
+  color: #f1f1f1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  text-align: left;
+}
+
+.modelMenu button:hover,
+.modelMenu button.active {
+  background: rgba(59, 108, 255, 0.18);
+}
+
+.modelMenu strong,
+.modelMenu small {
+  display: block;
+}
+
+.modelMenu strong {
+  font-size: 14px;
+}
+
+.modelMenu small {
+  margin-top: 3px;
+  color: #9a9a9a;
+  font-size: 12px;
 }
 
 .mainArea {
   flex: 1;
-  padding: 40px 20px 130px;
+  padding: 44px 20px 150px;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -159,36 +239,57 @@ button {
   width: min(840px, 100%);
   display: flex;
   flex-direction: column;
-  gap: 22px;
+  gap: 18px;
   align-self: stretch;
   margin: 0 auto;
 }
 
+.chatActions {
+  display: flex;
+  justify-content: center;
+  margin: 0 0 4px;
+}
+
+.chatActions button {
+  min-height: 36px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 999px;
+  padding: 0 14px;
+  background: rgba(255, 255, 255, 0.07);
+  color: #d8d8d8;
+  font-size: 13px;
+  backdrop-filter: blur(14px);
+}
+
+.chatActions button:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
 .chatMessage {
   max-width: 78%;
-  padding: 18px 20px;
-  border-radius: 24px;
+  padding: 15px 18px;
+  border-radius: 20px;
   white-space: pre-wrap;
-  line-height: 1.65;
+  line-height: 1.62;
   animation: fadeUp 0.22s ease-out;
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.18);
 }
 
 .chatMessage.user {
   align-self: flex-end;
-  background: linear-gradient(135deg, #3268ff, #2851dc);
-  border-bottom-right-radius: 8px;
+  background: linear-gradient(135deg, #2f62ef, #234bc9);
+  border-bottom-right-radius: 7px;
 }
 
 .chatMessage.ai {
   align-self: flex-start;
-  background: rgba(255, 255, 255, 0.09);
+  background: rgba(255, 255, 255, 0.075);
   border: 1px solid rgba(255, 255, 255, 0.09);
-  border-bottom-left-radius: 8px;
+  border-bottom-left-radius: 7px;
   backdrop-filter: blur(14px);
 }
 
 .messageTop,
-.messageLabel,
 .messageCopyButton,
 .codeHeader {
   display: flex;
@@ -196,16 +297,8 @@ button {
 }
 
 .messageTop {
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.messageLabel {
-  gap: 6px;
-  font-size: 13px;
-  color: #b9c3d8;
-  margin-bottom: 8px;
-  font-weight: 700;
+  justify-content: flex-end;
+  margin: -4px -4px 8px 0;
 }
 
 .messageText {
@@ -221,6 +314,20 @@ button {
   color: #ddd;
   font-size: 12px;
   gap: 5px;
+}
+
+.imageDownloadButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: -2px 0 10px;
+  min-height: 30px;
+  border-radius: 999px;
+  padding: 0 10px;
+  color: #ddd;
+  background: rgba(255, 255, 255, 0.08);
+  text-decoration: none;
+  font-size: 12px;
 }
 
 .messageImage {
@@ -450,19 +557,6 @@ button {
   place-items: center;
 }
 
-.exportButton {
-  position: fixed;
-  top: 72px;
-  right: 18px;
-  z-index: 10;
-  border: 0;
-  border-radius: 999px;
-  padding: 9px 14px;
-  color: #fff;
-  background: rgba(255, 255, 255, 0.09);
-  backdrop-filter: blur(14px);
-}
-
 .dropOverlay {
   position: fixed;
   inset: 0;
@@ -641,7 +735,6 @@ button {
   color: #ff9a9a !important;
 }
 
-.settingItem,
 .settingToggle {
   width: 100%;
   min-height: 44px;
@@ -655,19 +748,9 @@ button {
   gap: 10px;
 }
 
-.settingItem span,
 .settingToggle span {
   color: #ddd;
   font-size: 14px;
-}
-
-.settingItem select {
-  max-width: 150px;
-  background: #1f1f1f;
-  color: #fff;
-  border: 0;
-  border-radius: 10px;
-  padding: 7px;
 }
 
 .settingToggle input {
@@ -705,8 +788,25 @@ button {
     grid-template-columns: repeat(2, 1fr);
   }
 
-  .modelBadge {
-    display: none;
+  .header {
+    gap: 10px;
+    padding: 0 12px;
+  }
+
+  .logoArea {
+    font-size: 18px;
+  }
+
+  .headerModelPicker {
+    min-width: 116px;
+    height: 38px;
+    padding: 0 11px;
+    font-size: 12px;
+  }
+
+  .modelMenu {
+    right: -2px;
+    width: min(248px, calc(100vw - 24px));
   }
 
   .chatMessage {
