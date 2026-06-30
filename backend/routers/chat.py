@@ -1,3 +1,5 @@
+import re
+
 from fastapi import APIRouter
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
@@ -8,12 +10,62 @@ from services.nvidia_client import client
 router = APIRouter()
 
 
+def normalize_name(text: str) -> str:
+    return re.sub(r"[^가-힣a-zA-Z0-9\s]", "", text).strip()[:24]
+
+
+def looks_like_bare_name(text: str) -> bool:
+    name = normalize_name(text)
+    return 2 <= len(name) <= 12 and re.fullmatch(r"[가-힣a-zA-Z0-9\s]+", name) is not None
+
+
+def assistant_asked_for_name(text: str) -> bool:
+    compact = re.sub(r"\s", "", text)
+    return "이름" in compact and any(
+        keyword in compact for keyword in ("알려", "말씀", "알수없", "모릅니다")
+    )
+
+
+def is_name_question(text: str) -> bool:
+    compact = re.sub(r"\s", "", text)
+    return any(
+        keyword in compact for keyword in ("내이름", "제이름", "이름이뭐", "이름뭐")
+    )
+
+
+def infer_name_from_history(history: list[dict[str, str]]) -> str:
+    for index, item in enumerate(history):
+        text = item.get("text", "")
+        role = item.get("role")
+
+        explicit = re.search(
+            r"(?:내\s*이름은|제\s*이름은|나는|난|저는|전)\s*([가-힣a-zA-Z0-9\s]{2,24})(?:이야|야|입니다|이에요|예요|임|$)",
+            text,
+            re.I,
+        )
+        if role == "user" and explicit:
+            return normalize_name(explicit.group(1))
+
+        next_item = history[index + 1] if index + 1 < len(history) else None
+        if (
+            role == "assistant"
+            and next_item
+            and next_item.get("role") == "user"
+            and assistant_asked_for_name(text)
+            and looks_like_bare_name(next_item.get("text", ""))
+        ):
+            return normalize_name(next_item.get("text", ""))
+
+    return ""
+
+
 class ChatRequest(BaseModel):
     message: str
     image_base64: str | None = None
     image_type: str | None = None
     model: str | None = "auto"
     history: list[dict[str, str]] = Field(default_factory=list)
+    memory: dict[str, str] = Field(default_factory=dict)
 
 
 @router.post("/chat/stream")
@@ -23,6 +75,23 @@ def chat_stream(req: ChatRequest):
         selected_model = choose_chat_model(req.model, has_image, req.message)
 
         user_text = req.message or "이 이미지를 분석해줘"
+        inferred_name = (req.memory.get("name") or "").strip() or infer_name_from_history(
+            req.history
+        )
+        last_history = req.history[-1] if req.history else None
+
+        if is_name_question(user_text) and inferred_name:
+            yield f"{inferred_name}님입니다."
+            return
+
+        if (
+            last_history
+            and last_history.get("role") == "assistant"
+            and assistant_asked_for_name(last_history.get("text", ""))
+            and looks_like_bare_name(user_text)
+        ):
+            yield f"{normalize_name(user_text)}님이라고 기억할게요."
+            return
 
         if has_image:
             user_text = f"""
@@ -76,6 +145,15 @@ def chat_stream(req: ChatRequest):
 {history_text}
 
 [현재 질문]
+{user_text}
+"""
+
+        user_name = inferred_name
+        if user_name:
+            user_text = f"""
+[사용자 메모리]
+사용자의 이름: {user_name}
+
 {user_text}
 """
 

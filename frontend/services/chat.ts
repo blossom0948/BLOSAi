@@ -3,6 +3,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
 export async function streamChat({
   message,
   history,
+  memory,
   imageBase64,
   imageType,
   model,
@@ -11,6 +12,7 @@ export async function streamChat({
 }: {
   message: string;
   history: Array<{ role: "user" | "assistant"; text: string }>;
+  memory: { name?: string };
   imageBase64: string | null;
   imageType: string | null;
   model: string;
@@ -26,6 +28,7 @@ export async function streamChat({
     body: JSON.stringify({
       message,
       history,
+      memory,
       image_base64: imageBase64,
       image_type: imageType,
       model,

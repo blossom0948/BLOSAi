@@ -17,3 +17,7 @@ export type UserSettings = {
   compactMode: boolean;
   saveHistory: boolean;
 };
+
+export type UserMemory = {
+  name?: string;
+};
