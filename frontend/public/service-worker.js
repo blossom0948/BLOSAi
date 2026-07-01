@@ -1,4 +1,4 @@
-const CACHE_NAME = "blos-ai-v3";
+const CACHE_NAME = "blos-ai-v5";
 
 self.addEventListener("install", (event) => {
   event.waitUntil(

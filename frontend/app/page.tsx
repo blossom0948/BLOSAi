@@ -42,8 +42,8 @@ export default function Home() {
 
     const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
     const url = URL.createObjectURL(blob);
-
     const a = document.createElement("a");
+
     a.href = url;
     a.download = "blos-ai-chat.txt";
     a.click();
@@ -64,10 +64,7 @@ export default function Home() {
         setDragging(false);
 
         const file = e.dataTransfer.files?.[0];
-
-        if (file && file.type.startsWith("image/")) {
-          setSelectedImage(file);
-        }
+        if (file && file.type.startsWith("image/")) setSelectedImage(file);
       }}
     >
       {dragging && <div className="dropOverlay">이미지를 여기에 놓으세요</div>}

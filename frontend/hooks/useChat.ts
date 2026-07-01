@@ -11,6 +11,8 @@ const DEFAULT_SETTINGS: UserSettings = {
   saveHistory: true,
 };
 
+const MEMORY_LIMIT = 36;
+
 type InitialChatState = {
   messages: Message[];
   conversations: Conversation[];
@@ -40,6 +42,20 @@ function assistantTextAskedForName(text: string) {
   );
 }
 
+function extractExplicitName(message: string) {
+  const patterns = [
+    /(?:내\s*이름은|제\s*이름은|나는|저는|난)\s*([가-힣a-zA-Z0-9\s]{2,24})(?:이야|입니다|이에요|예요|야|임|$)/i,
+    /([가-힣a-zA-Z0-9\s]{2,24})(?:라고\s*불러|로\s*불러|이라고\s*불러)/i,
+  ];
+
+  for (const pattern of patterns) {
+    const match = message.match(pattern);
+    if (match?.[1]) return normalizeName(match[1]);
+  }
+
+  return "";
+}
+
 function inferNameFromMessages(messages: Message[]) {
   for (let index = 0; index < messages.length; index += 1) {
     const message = messages[index];
@@ -62,6 +78,79 @@ function inferNameFromMessages(messages: Message[]) {
   return "";
 }
 
+function inferNameFromConversations(conversations: Conversation[]) {
+  for (const conversation of conversations) {
+    const name = inferNameFromMessages(conversation.messages);
+    if (name) return name;
+  }
+
+  return "";
+}
+
+function isNameQuestion(message: string) {
+  const text = message.replace(/\s/g, "");
+  return (
+    text.includes("내이름") ||
+    text.includes("제이름") ||
+    text.includes("이름뭐") ||
+    text.includes("이름뭔")
+  );
+}
+
+function assistantAskedForName(messages: Message[]) {
+  const lastAi = [...messages].reverse().find((message) => message.role === "ai");
+  if (!lastAi) return false;
+
+  return assistantTextAskedForName(lastAi.text);
+}
+
+function cleanMemoryNote(text: string) {
+  return text
+    .replace(/\s+/g, " ")
+    .replace(/[<>]/g, "")
+    .trim()
+    .slice(0, 180);
+}
+
+function shouldRememberUserMessage(message: string) {
+  const text = message.trim();
+  if (text.length < 4 || text.length > 220) return false;
+
+  return /^(내|제|나는|저는|난|나의|저의)\s/.test(text) || /(기억해|기억해줘|앞으로|좋아해|싫어해|선호|이름)/.test(text);
+}
+
+function deriveMemoryFromMessage(message: string, current: UserMemory) {
+  const explicitName = extractExplicitName(message);
+  const note = shouldRememberUserMessage(message) ? cleanMemoryNote(message) : "";
+  const notes = current.notes || [];
+  const nextNotes = note && !notes.includes(note) ? [...notes, note].slice(-MEMORY_LIMIT) : notes;
+
+  return {
+    ...current,
+    name: explicitName || current.name,
+    notes: nextNotes,
+  };
+}
+
+function hydrateMemoryFromConversations(memory: UserMemory, conversations: Conversation[]) {
+  let next = { ...memory, notes: memory.notes || [] };
+
+  if (!next.name) {
+    const name = inferNameFromConversations(conversations);
+    if (name) next.name = name;
+  }
+
+  for (const conversation of conversations) {
+    for (const message of conversation.messages) {
+      if (message.role === "user") {
+        next = deriveMemoryFromMessage(message.text, next);
+      }
+    }
+  }
+
+  return next;
+}
+
 function loadInitialChatState(): InitialChatState {
   if (typeof window === "undefined") {
     return {
@@ -69,7 +158,7 @@ function loadInitialChatState(): InitialChatState {
       conversations: [],
       currentId: "",
       settings: DEFAULT_SETTINGS,
-      memory: {},
+      memory: { notes: [] },
       loggedIn: false,
     };
   }
@@ -83,11 +172,10 @@ function loadInitialChatState(): InitialChatState {
   const conversations: Conversation[] = saved ? JSON.parse(saved) : [];
   const firstConversation = conversations[0];
   const savedMemory = localStorage.getItem("blos-memory");
-  const parsedMemory = savedMemory ? JSON.parse(savedMemory) : {};
-  const memory =
-    parsedMemory.name || !firstConversation
-      ? parsedMemory
-      : { ...parsedMemory, name: inferNameFromMessages(firstConversation.messages) || undefined };
+  const parsedMemory: UserMemory = savedMemory ? JSON.parse(savedMemory) : { notes: [] };
+  const memory = hydrateMemoryFromConversations(parsedMemory, conversations);
+
+  localStorage.setItem("blos-memory", JSON.stringify(memory));
 
   return {
     messages: firstConversation?.messages || [],
@@ -113,7 +201,6 @@ function compressImage(
     img.onload = () => {
       const canvas = document.createElement("canvas");
       const maxSize = 900;
-
       let width = img.width;
       let height = img.height;
 
@@ -139,11 +226,7 @@ function compressImage(
       const previewUrl = canvas.toDataURL("image/jpeg", 0.75);
       const base64 = previewUrl.split(",")[1];
 
-      resolve({
-        base64,
-        type: "image/jpeg",
-        previewUrl,
-      });
+      resolve({ base64, type: "image/jpeg", previewUrl });
     };
 
     reader.onerror = reject;
@@ -154,7 +237,7 @@ function compressImage(
 
 function shouldAutoGenerateImage(message: string) {
   const text = message.toLowerCase();
-  const imageWords = ["이미지", "그림", "사진", "로고", "썸네일", "포스터", "아이콘"];
+  const imageWords = ["이미지", "그림", "사진", "로고", "썸네일", "포스터", "아이콘", "image", "picture"];
   const createWords = ["만들", "생성", "그려", "제작", "create", "generate", "draw"];
 
   return (
@@ -166,42 +249,11 @@ function shouldAutoGenerateImage(message: string) {
 function toApiHistory(messages: Message[]) {
   return messages
     .filter((message) => message.text.trim())
-    .slice(-16)
+    .slice(-24)
     .map((message) => ({
       role: message.role === "ai" ? ("assistant" as const) : ("user" as const),
       text: message.text,
     }));
-}
-
-function extractExplicitName(message: string) {
-  const patterns = [
-    /(?:내\s*이름은|제\s*이름은|나는|난|저는|전)\s*([가-힣a-zA-Z0-9\s]{2,24})(?:이야|야|입니다|이에요|예요|임|$)/i,
-    /([가-힣a-zA-Z0-9\s]{2,24})(?:라고\s*불러|로\s*불러|이라고\s*불러)/i,
-  ];
-
-  for (const pattern of patterns) {
-    const match = message.match(pattern);
-    if (match?.[1]) return normalizeName(match[1]);
-  }
-
-  return "";
-}
-
-function isNameQuestion(message: string) {
-  const text = message.replace(/\s/g, "");
-  return (
-    text.includes("내이름") ||
-    text.includes("제이름") ||
-    text.includes("이름이뭐") ||
-    text.includes("이름뭐")
-  );
-}
-
-function assistantAskedForName(messages: Message[]) {
-  const lastAi = [...messages].reverse().find((message) => message.role === "ai");
-  if (!lastAi) return false;
-
-  return assistantTextAskedForName(lastAi.text);
 }
 
 export function useChat() {
@@ -229,14 +281,20 @@ export function useChat() {
     localStorage.setItem("blos-settings", JSON.stringify(next));
   }
 
+  function updateMemory(next: UserMemory) {
+    const normalized = { ...next, notes: (next.notes || []).slice(-MEMORY_LIMIT) };
+    setMemory(normalized);
+    localStorage.setItem("blos-memory", JSON.stringify(normalized));
+    return normalized;
+  }
+
   function login(username: string) {
-    const next = {
-      ...settings,
-      username: username.trim() || "사용자",
-    };
+    const cleanName = username.trim() || "사용자";
+    const next = { ...settings, username: cleanName };
 
     setSettings(next);
     setLoggedIn(true);
+    updateMemory({ ...memory, name: cleanName });
 
     localStorage.setItem("blos-settings", JSON.stringify(next));
     localStorage.setItem("blos-logged-in", "true");
@@ -247,25 +305,17 @@ export function useChat() {
     localStorage.removeItem("blos-logged-in");
   }
 
-  function updateMemory(next: UserMemory) {
-    setMemory(next);
-    localStorage.setItem("blos-memory", JSON.stringify(next));
-  }
-
   function saveConversation(nextMessages: Message[]) {
-    if (!settings.saveHistory) return;
-    if (nextMessages.length === 0) return;
+    if (!settings.saveHistory || nextMessages.length === 0) return;
 
     const id = currentId || crypto.randomUUID();
     const title = nextMessages[0]?.text.slice(0, 22) || "새 대화";
-
     const nextConversation: Conversation = {
       id,
       title,
       messages: nextMessages,
       createdAt: Date.now(),
     };
-
     const updated = [
       nextConversation,
       ...conversations.filter((conversation) => conversation.id !== id),
@@ -329,33 +379,30 @@ export function useChat() {
   async function sendMessage() {
     if ((!input.trim() && !selectedImage) || loading) return;
 
-    const userMessage = input || "이 이미지를 분석해줘";
+    const userMessage = input.trim() || "이 이미지를 분석해줘";
     const imageFile = selectedImage;
+    const rememberedMemory = updateMemory(deriveMemoryFromMessage(userMessage, memory));
 
     setInput("");
     setSelectedImage(null);
 
     const controller = new AbortController();
     abortRef.current = controller;
-
     setLoading(true);
 
     try {
-      const explicitName = extractExplicitName(userMessage);
       const bareName =
-        !explicitName && assistantAskedForName(messages) && looksLikeBareName(userMessage)
+        !extractExplicitName(userMessage) && assistantAskedForName(messages) && looksLikeBareName(userMessage)
           ? normalizeName(userMessage)
           : "";
-      const nextName = explicitName || bareName;
+      const nextName = extractExplicitName(userMessage) || bareName;
 
       if (nextName) {
-        const nextMemory = { ...memory, name: nextName };
-        updateMemory(nextMemory);
-
+        const nextMemory = updateMemory({ ...rememberedMemory, name: nextName });
         const doneMessages: Message[] = [
           ...messages,
           { role: "user", text: userMessage },
-          { role: "ai", text: `${nextName}님이라고 기억할게요.` },
+          { role: "ai", text: `${nextMemory.name}님이라고 기억할게요.` },
         ];
 
         setMessages(doneMessages);
@@ -364,11 +411,9 @@ export function useChat() {
         return;
       }
 
-      const inferredName = memory.name || inferNameFromMessages(messages);
+      const inferredName = rememberedMemory.name || inferNameFromMessages(messages);
 
       if (isNameQuestion(userMessage) && inferredName) {
-        if (!memory.name) updateMemory({ ...memory, name: inferredName });
-
         const doneMessages: Message[] = [
           ...messages,
           { role: "user", text: userMessage },
@@ -396,15 +441,10 @@ export function useChat() {
         setMessages(startMessages);
 
         const imageUrl = await generateImage(userMessage);
-
         const doneMessages: Message[] = [
           ...messages,
           { role: "user", text: userMessage },
-          {
-            role: "ai",
-            text: "이미지 생성 완료",
-            imageUrl,
-          },
+          { role: "ai", text: "이미지 생성 완료", imageUrl },
         ];
 
         setMessages(doneMessages);
@@ -426,11 +466,7 @@ export function useChat() {
 
       const startMessages: Message[] = [
         ...messages,
-        {
-          role: "user",
-          text: userMessage,
-          imageUrl: previewUrl,
-        },
+        { role: "user", text: userMessage, imageUrl: previewUrl },
         { role: "ai", text: "" },
       ];
 
@@ -439,7 +475,7 @@ export function useChat() {
       await streamChat({
         message: userMessage,
         history: toApiHistory(messages),
-        memory,
+        memory: rememberedMemory,
         imageBase64,
         imageType,
         model: settings.model,
@@ -447,10 +483,7 @@ export function useChat() {
         onChunk: (aiText) => {
           setMessages((prev) => {
             const updated = [...prev];
-            updated[updated.length - 1] = {
-              role: "ai",
-              text: aiText,
-            };
+            updated[updated.length - 1] = { role: "ai", text: aiText };
             saveConversation(updated);
             return updated;
           });
@@ -468,10 +501,7 @@ export function useChat() {
         const updated = [...prev];
 
         if (updated.length > 0) {
-          updated[updated.length - 1] = {
-            role: "ai",
-            text: message,
-          };
+          updated[updated.length - 1] = { role: "ai", text: message };
         }
 
         saveConversation(updated);

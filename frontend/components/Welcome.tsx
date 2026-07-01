@@ -12,7 +12,7 @@ export default function Welcome({ onPromptSelect }: Props) {
       </div>
 
       <h1>
-        안녕하세요.
+        안녕하세요
         <br />
         BLOS AI가 도와드릴게요
       </h1>
@@ -38,12 +38,10 @@ export default function Welcome({ onPromptSelect }: Props) {
 
       <div className="suggestions">
         <p>추천 사용법</p>
-        <span onClick={() => onPromptSelect("문제 사진 올릴게. 이거 풀어줘")}>
-          문제 사진 올리고 풀어달라고 하기
+        <span onClick={() => onPromptSelect("문제 사진 올리고 풀이해달라고 하기")}>
+          문제 사진 올리고 풀이 받기
         </span>
-        <span onClick={() => onPromptSelect("영수증 사진을 항목별로 정리해줘")}>
-          영수증 사진 정리
-        </span>
+        <span onClick={() => onPromptSelect("영수증 사진을 정리해줘")}>영수증 사진 정리</span>
         <span onClick={() => onPromptSelect("오류 화면을 올릴게. 뭐가 문제인지 알려줘")}>
           오류 화면 분석
         </span>

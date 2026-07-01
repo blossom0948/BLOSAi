@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import ServiceWorkerRegister from "../components/ServiceWorkerRegister";
+import MobileViewportFix from "../components/MobileViewportFix";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -34,6 +35,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
+  viewportFit: "cover",
 };
 
 export default function RootLayout({
@@ -45,6 +47,7 @@ export default function RootLayout({
     <html lang="ko" className={`${geistSans.variable} ${geistMono.variable}`}>
       <body>
         <ServiceWorkerRegister />
+        <MobileViewportFix />
         {children}
       </body>
     </html>

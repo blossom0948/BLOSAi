@@ -33,7 +33,7 @@ export default function Sidebar({
   onSettingsChange,
 }: Props) {
   function updateUsername() {
-    const name = prompt("사용자 이름을 입력하세요.", settings.username);
+    const name = prompt("사용자 이름을 입력하세요", settings.username);
     if (name !== null) onLogin(name);
   }
 
@@ -76,8 +76,7 @@ export default function Sidebar({
             onClose();
           }}
         >
-          <Plus size={18} />
-          새 대화
+          <Plus size={18} />새 대화
         </button>
 
         <div className="sidebarSection">

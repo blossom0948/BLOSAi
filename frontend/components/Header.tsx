@@ -26,7 +26,7 @@ const MODEL_OPTIONS: Array<{
 }> = [
   { value: "auto", label: "Auto 추천", caption: "요청에 맞게 자동 선택" },
   { value: "minimax", label: "MiniMax M3", caption: "일반 대화와 글쓰기" },
-  { value: "deepseek", label: "DeepSeek V4", caption: "코드 오류와 개발" },
+  { value: "deepseek", label: "DeepSeek V4", caption: "정확한 답변과 개발" },
   { value: "glm", label: "GLM 5.1", caption: "번역과 정리" },
   { value: "image", label: "Qwen Image", caption: "이미지 생성" },
 ];
@@ -41,14 +41,18 @@ export default function Header({
   const modelWrapRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    function closeOnOutsideClick(event: MouseEvent) {
+    function closeOnOutsideClick(event: MouseEvent | TouchEvent) {
       if (!modelWrapRef.current?.contains(event.target as Node)) {
         setModelMenuOpen(false);
       }
     }
 
     document.addEventListener("mousedown", closeOnOutsideClick);
-    return () => document.removeEventListener("mousedown", closeOnOutsideClick);
+    document.addEventListener("touchstart", closeOnOutsideClick, { passive: true });
+    return () => {
+      document.removeEventListener("mousedown", closeOnOutsideClick);
+      document.removeEventListener("touchstart", closeOnOutsideClick);
+    };
   }, []);
 
   return (

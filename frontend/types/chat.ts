@@ -20,4 +20,5 @@ export type UserSettings = {
 
 export type UserMemory = {
   name?: string;
+  notes?: string[];
 };

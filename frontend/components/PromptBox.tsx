@@ -33,7 +33,6 @@ export default function PromptBox({
   setSelectedImage,
 }: Props) {
   const [menuOpen, setMenuOpen] = useState(false);
-
   const photoInputRef = useRef<HTMLInputElement | null>(null);
   const cameraInputRef = useRef<HTMLInputElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -51,14 +50,18 @@ export default function PromptBox({
   }, [objectUrl]);
 
   useEffect(() => {
-    function closeOnOutsideClick(event: MouseEvent) {
+    function closeOnOutsideClick(event: MouseEvent | TouchEvent) {
       if (!promptOuterRef.current?.contains(event.target as Node)) {
         setMenuOpen(false);
       }
     }
 
     document.addEventListener("mousedown", closeOnOutsideClick);
-    return () => document.removeEventListener("mousedown", closeOnOutsideClick);
+    document.addEventListener("touchstart", closeOnOutsideClick, { passive: true });
+    return () => {
+      document.removeEventListener("mousedown", closeOnOutsideClick);
+      document.removeEventListener("touchstart", closeOnOutsideClick);
+    };
   }, []);
 
   function chooseFile(file?: File) {
@@ -107,11 +110,7 @@ export default function PromptBox({
         <div className="imagePreview">
           {objectUrl && <img src={objectUrl} alt="첨부 이미지 미리보기" />}
           <span>{selectedImage.name}</span>
-          <button
-            type="button"
-            onClick={() => setSelectedImage(null)}
-            aria-label="첨부 제거"
-          >
+          <button type="button" onClick={() => setSelectedImage(null)} aria-label="첨부 제거">
             <X size={18} />
           </button>
         </div>
@@ -130,6 +129,8 @@ export default function PromptBox({
         <textarea
           value={input}
           onChange={(e) => setInput(e.target.value)}
+          onFocus={() => document.documentElement.classList.add("keyboardActive")}
+          onBlur={() => document.documentElement.classList.remove("keyboardActive")}
           onKeyDown={(e) => {
             if (e.key === "Enter" && !e.shiftKey) {
               e.preventDefault();
@@ -145,21 +146,11 @@ export default function PromptBox({
         </button>
 
         {loading ? (
-          <button
-            type="button"
-            className="sendButton stop"
-            onClick={onStop}
-            aria-label="응답 중지"
-          >
+          <button type="button" className="sendButton stop" onClick={onStop} aria-label="응답 중지">
             <Square size={18} fill="currentColor" />
           </button>
         ) : (
-          <button
-            type="button"
-            className="sendButton"
-            onClick={onSend}
-            aria-label="전송"
-          >
+          <button type="button" className="sendButton" onClick={onSend} aria-label="전송">
             <Send size={19} />
           </button>
         )}
