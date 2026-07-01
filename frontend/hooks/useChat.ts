@@ -151,6 +151,16 @@ function hydrateMemoryFromConversations(memory: UserMemory, conversations: Conve
   return next;
 }
 
+function safeJsonParse<T>(value: string | null, fallback: T): T {
+  if (!value) return fallback;
+
+  try {
+    return JSON.parse(value) as T;
+  } catch {
+    return fallback;
+  }
+}
+
 function loadInitialChatState(): InitialChatState {
   if (typeof window === "undefined") {
     return {
@@ -163,16 +173,18 @@ function loadInitialChatState(): InitialChatState {
     };
   }
 
-  const savedSettings = localStorage.getItem("blos-settings");
-  const settings = savedSettings
-    ? { ...DEFAULT_SETTINGS, ...JSON.parse(savedSettings) }
-    : DEFAULT_SETTINGS;
-
-  const saved = localStorage.getItem("blos-conversations");
-  const conversations: Conversation[] = saved ? JSON.parse(saved) : [];
+  const settings = {
+    ...DEFAULT_SETTINGS,
+    ...safeJsonParse<Partial<UserSettings>>(localStorage.getItem("blos-settings"), {}),
+  };
+  const conversations = safeJsonParse<Conversation[]>(
+    localStorage.getItem("blos-conversations"),
+    []
+  );
   const firstConversation = conversations[0];
-  const savedMemory = localStorage.getItem("blos-memory");
-  const parsedMemory: UserMemory = savedMemory ? JSON.parse(savedMemory) : { notes: [] };
+  const parsedMemory = safeJsonParse<UserMemory>(localStorage.getItem("blos-memory"), {
+    notes: [],
+  });
   const memory = hydrateMemoryFromConversations(parsedMemory, conversations);
 
   localStorage.setItem("blos-memory", JSON.stringify(memory));
@@ -332,7 +344,6 @@ export function useChat() {
     setMessages([]);
     setSelectedImage(null);
     setCurrentId("");
-    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   function openConversation(id: string) {
@@ -389,6 +400,8 @@ export function useChat() {
     const controller = new AbortController();
     abortRef.current = controller;
     setLoading(true);
+
+    let streamedText = "";
 
     try {
       const bareName =
@@ -481,6 +494,7 @@ export function useChat() {
         model: settings.model,
         signal: controller.signal,
         onChunk: (aiText) => {
+          streamedText = aiText;
           setMessages((prev) => {
             const updated = [...prev];
             updated[updated.length - 1] = { role: "ai", text: aiText };
@@ -490,23 +504,23 @@ export function useChat() {
         },
       });
     } catch (error) {
-      if (controller.signal.aborted) return;
+      if (!controller.signal.aborted && !streamedText.trim()) {
+        const message =
+          error instanceof Error
+            ? `오류가 발생했어요.\n\n${error.message}`
+            : "오류가 발생했어요. 잠시 후 다시 보내주세요.";
 
-      const message =
-        error instanceof Error
-          ? `오류가 발생했어요.\n\n${error.message}`
-          : "오류가 발생했어요. 백엔드 서버가 켜져 있는지 확인해주세요.";
+        setMessages((prev) => {
+          const updated = [...prev];
 
-      setMessages((prev) => {
-        const updated = [...prev];
+          if (updated.length > 0) {
+            updated[updated.length - 1] = { role: "ai", text: message };
+          }
 
-        if (updated.length > 0) {
-          updated[updated.length - 1] = { role: "ai", text: message };
-        }
-
-        saveConversation(updated);
-        return updated;
-      });
+          saveConversation(updated);
+          return updated;
+        });
+      }
     }
 
     abortRef.current = null;

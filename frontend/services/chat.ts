@@ -4,6 +4,19 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
 
 type ApiHistoryItem = { role: "user" | "assistant"; text: string };
 
+function isLocalApiUrl() {
+  return API_URL.includes("127.0.0.1") || API_URL.includes("localhost");
+}
+
+function isLocalPage() {
+  if (typeof window === "undefined") return true;
+  return window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+}
+
+function shouldUseBackend() {
+  return !isLocalApiUrl() || isLocalPage();
+}
+
 function buildMemoryPrompt({
   message,
   history,
@@ -36,6 +49,20 @@ function buildMemoryPrompt({
     .join("\n\n");
 }
 
+async function fetchWithTimeout(url: string, init: RequestInit = {}, timeoutMs = 45000) {
+  const controller = new AbortController();
+  const timeout = window.setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    return await fetch(url, {
+      ...init,
+      signal: init.signal || controller.signal,
+    });
+  } finally {
+    window.clearTimeout(timeout);
+  }
+}
+
 async function fallbackTextChat({
   message,
   history,
@@ -48,13 +75,25 @@ async function fallbackTextChat({
   onChunk: (text: string) => void;
 }) {
   const prompt = buildMemoryPrompt({ message, history, memory });
-  const res = await fetch(`https://text.pollinations.ai/${encodeURIComponent(prompt)}`);
 
-  if (!res.ok) throw new Error("AI 응답을 가져오지 못했어요.");
+  try {
+    const res = await fetchWithTimeout(
+      `https://text.pollinations.ai/${encodeURIComponent(prompt)}`,
+      {},
+      45000
+    );
 
-  const text = await res.text();
-  onChunk(text);
-  return text;
+    if (!res.ok) throw new Error(`fallback status ${res.status}`);
+
+    const text = await res.text();
+    onChunk(text);
+    return text;
+  } catch {
+    const messageText =
+      "지금 모바일 네트워크에서 AI 응답 서버 연결이 불안정해요. 잠시 후 다시 보내주세요.";
+    onChunk(messageText);
+    return messageText;
+  }
 }
 
 function pollinationsImageUrl(prompt: string) {
@@ -89,6 +128,16 @@ export async function streamChat({
   signal?: AbortSignal;
   onChunk: (text: string) => void;
 }) {
+  if (!shouldUseBackend()) {
+    if (imageBase64) {
+      const text = "배포된 모바일 웹에서는 사진 분석용 백엔드 연결이 필요합니다.";
+      onChunk(text);
+      return text;
+    }
+
+    return fallbackTextChat({ message, history, memory, onChunk });
+  }
+
   let res: Response;
 
   try {
@@ -109,7 +158,9 @@ export async function streamChat({
     });
   } catch {
     if (imageBase64) {
-      throw new Error("배포된 웹에서는 이미지 분석용 백엔드 연결이 필요합니다.");
+      const text = "이미지 분석용 백엔드 연결이 필요합니다.";
+      onChunk(text);
+      return text;
     }
 
     return fallbackTextChat({ message, history, memory, onChunk });
@@ -138,6 +189,8 @@ export async function streamChat({
 }
 
 export async function generateImage(prompt: string) {
+  if (!shouldUseBackend()) return pollinationsImageUrl(prompt);
+
   try {
     const res = await fetch(`${API_URL}/image/generate`, {
       method: "POST",

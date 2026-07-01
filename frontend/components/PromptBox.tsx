@@ -36,6 +36,7 @@ export default function PromptBox({
   const photoInputRef = useRef<HTMLInputElement | null>(null);
   const cameraInputRef = useRef<HTMLInputElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const promptOuterRef = useRef<HTMLDivElement | null>(null);
 
   const objectUrl = useMemo(() => {
@@ -48,6 +49,14 @@ export default function PromptBox({
       if (objectUrl) URL.revokeObjectURL(objectUrl);
     };
   }, [objectUrl]);
+
+  useEffect(() => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+
+    textarea.style.height = "0px";
+    textarea.style.height = `${Math.min(textarea.scrollHeight, 104)}px`;
+  }, [input]);
 
   useEffect(() => {
     function closeOnOutsideClick(event: MouseEvent | TouchEvent) {
@@ -127,6 +136,7 @@ export default function PromptBox({
         </button>
 
         <textarea
+          ref={textareaRef}
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onFocus={() => document.documentElement.classList.add("keyboardActive")}
@@ -162,7 +172,6 @@ export default function PromptBox({
           hidden
           onChange={(e) => chooseFile(e.target.files?.[0])}
         />
-
         <input
           ref={cameraInputRef}
           type="file"
@@ -171,7 +180,6 @@ export default function PromptBox({
           hidden
           onChange={(e) => chooseFile(e.target.files?.[0])}
         />
-
         <input
           ref={fileInputRef}
           type="file"

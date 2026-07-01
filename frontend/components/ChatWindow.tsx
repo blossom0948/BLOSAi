@@ -18,14 +18,20 @@ export default function ChatWindow({
   onPromptSelect,
   onExport,
 }: Props) {
-  const bottomRef = useRef<HTMLDivElement | null>(null);
+  const scrollRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
-  }, [messages, loading]);
+    const scrollEl = scrollRef.current;
+    if (!scrollEl || messages.length === 0) return;
+
+    scrollEl.scrollTo({
+      top: scrollEl.scrollHeight,
+      behavior: "smooth",
+    });
+  }, [messages.length, loading]);
 
   return (
-    <section className="mainArea">
+    <section className="mainArea" ref={scrollRef}>
       {messages.length === 0 ? (
         <Welcome onPromptSelect={onPromptSelect} />
       ) : (
@@ -46,8 +52,6 @@ export default function ChatWindow({
               imageUrl={msg.imageUrl}
             />
           ))}
-
-          <div ref={bottomRef} />
         </div>
       )}
     </section>
